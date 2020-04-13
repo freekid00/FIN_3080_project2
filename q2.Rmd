@@ -1,0 +1,61 @@
+---
+title: "Untitled"
+author: "Di Zhang  118020518"
+date: "4/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd('/Users/zhangdi/Downloads/FIN_3080_project2-master/datasets')
+```
+
+```{r}
+stocks=read.csv('/Users/zhangdi/Downloads/FIN_3080_project2-master/datasets/q2_hand.csv')
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+head(stocks)
+```
+
+```{r}
+stocks$date=as.character(stocks$date)
+stocks$date=as.Date(stocks$date,format="%Y%m%d")
+```
+
+```{r}
+library(zoo)
+library(tidyr)
+```
+
+```{r}
+stocks=stocks %>% mutate(ym=as.yearmon(date)) %>% group_by(permno) %>%
+  arrange(ym) %>% mutate(assign_lag=lag(assign,1)) %>% na.omit()
+```
+
+```{r}
+stocks=stocks %>% filter(assign_lag==1)
+```
+
+```{r}
+stocks=stocks %>% group_by(ym) %>% mutate(total=sum(market_value),weight=market_value/total,return=weight*return) %>%
+  summarise(return=sum(return))
+```
+
+```{r}
+stocks=rbind(stocks[1:48,],stocks[50:170,])
+stocks=stocks %>% mutate(cumret=cumprod(1+return))
+```
+
+```{r}
+plot(stocks$cumret~stocks$ym,type='l',ylab = 'Cumulative Return',
+     xlab='Date',main='Portfolio by comparing return every month')
+```
+
